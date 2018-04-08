@@ -31,7 +31,7 @@ void printDir_R(const char *path, void (*printFile)(struct dirent*)) {
 
     // print current dir's files
     while ((entry = readdir(dir)) != NULL){
-        if(entry->d_type == DT_REG || entry->d_type == DT_DIR)
+        if(entry->d_type == DT_REG || entry->d_type == DT_DIR || entry->d_type == DT_LNK)
             printFile(entry);
     }
     closedir(dir);
@@ -40,7 +40,7 @@ void printDir_R(const char *path, void (*printFile)(struct dirent*)) {
     if(!(dir = opendir(path)))
         return;
     while ((entry = readdir(dir)) != NULL){
-        if (entry->d_type == DT_DIR) {
+        if (entry->d_type == DT_DIR || entry->d_type == DT_LNK) {
             char nextPath[1024];
             if( strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
                  continue;
