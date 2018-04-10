@@ -117,8 +117,8 @@ void printDir(const char *path, void (*printFile)(struct dirent*, const char*, i
 
 void printFile_Normal(struct dirent *entry, const char *path, int i){
     if(i==1)
-        printf("%1lld  ", entry->d_ino);
-    printf("%s\t", entry->d_name);
+        printf("%lu ", entry->d_ino);
+    printf("%s  ", entry->d_name);
 }
 
 void printFile_Long(struct dirent *entry, const char *path, int i){
@@ -134,16 +134,16 @@ void printFile_Long(struct dirent *entry, const char *path, int i){
     lstat(filePath, &fileStat);
     grp = getgrgid(fileStat.st_gid); 
     pw = getpwuid(fileStat.st_uid);
-    time = gmtime(&fileStat.st_mtime);
+    time = localtime(&fileStat.st_mtime);
     
     if(i==1)
-        printf("%10llu", fileStat.st_ino);
+        printf("%10lu", fileStat.st_ino);
     
     transferModeToString(fileStat);
-    printf("%4d", fileStat.st_nlink);
-    printf("%15s", pw->pw_name);
+    printf("%4lu", fileStat.st_nlink);
+    printf("%10s ", pw->pw_name);
     printf("%8s", grp->gr_name);
-    printf("%8lld", fileStat.st_size);
+    printf("%8lu", fileStat.st_size);
     printf("%7s %02d %04d %02d:%02d\t", months[time->tm_mon], time->tm_mday, time->tm_year + 1900, time->tm_hour, time->tm_min);
     printf("%s", entry->d_name);
     
@@ -156,7 +156,7 @@ void printFile_Long(struct dirent *entry, const char *path, int i){
 }
 
 void transferModeToString( struct stat fileStat){
-    printf("  ");
+    printf(" ");
     printf( (S_ISDIR(fileStat.st_mode)) ? "d" : "-");
     printf( (fileStat.st_mode & S_IRUSR) ? "r" : "-");
     printf( (fileStat.st_mode & S_IWUSR) ? "w" : "-");
