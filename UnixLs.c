@@ -10,11 +10,23 @@
 
 const char *months[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
+// excute ls command for the path with the function for printing file.
+// i=R=0 => print files on current path without any option on
+// i=1 => print inode number
+// R=1 => print subdirectories' files
 void printDir(const char *path, void (*f)(struct dirent*, const char*, int), int i, int R);
+
+// print file's name
+// i=0 => without inode number
+// i=1 => with inode number
 void printFile_Normal(struct dirent *entry, const char*, int i);
+
+// print file's detailed info
+// i=0 => without inode number
+// i=1 => with inode number
 void printFile_Long(struct dirent *entry, const char*, int i);
 
-// print stat file' permission string
+// transfer stat.st_mode to readable permission string and print it
 void transferModeToString(struct stat);
 
 int main( int argc, char **argv){
@@ -38,6 +50,7 @@ int main( int argc, char **argv){
     if(argv[argc-1][0] == '-')
        k=0; 
 
+    // check which option user selected to excute with
     for(int a=1; a < argc-k; a++){
         if(argv[a][0]!='-')
             printf("The arguments are not in right format\n");
@@ -56,6 +69,7 @@ int main( int argc, char **argv){
         }
     }
 
+    // k == 1, which means user specified the path with arguement
     if(k ==1 ){
         if( l == 0){
             printDir(argv[argc-1], printFile_Normal, i, r);
@@ -72,12 +86,15 @@ int main( int argc, char **argv){
         printf("\n");
         return 0;
     }
+
     printDir(".", printFile_Long, i, r); 
-        
-  
     return 0;
 }
 
+// excute ls command for the path with the function for printing file.
+// i=R=0 => print files on current path without any option on
+// i=1 => print inode number
+// R=1 => print subdirectories' files
 void printDir(const char *path, void (*printFile)(struct dirent*, const char*, int), int i, int R) {
     DIR *dir;
     struct dirent *entry;
@@ -115,12 +132,18 @@ void printDir(const char *path, void (*printFile)(struct dirent*, const char*, i
     }
 }
 
+// print file's name
+// i=0 => without inode number
+// i=1 => with inode number
 void printFile_Normal(struct dirent *entry, const char *path, int i){
     if(i==1)
-        printf("%1lld  ", entry->d_ino);
-    printf("%s\t", entry->d_name);
+        printf("%lu ", entry->d_ino);
+    printf("%s  ", entry->d_name);
 }
 
+// print file's detailed info
+// i=0 => without inode number
+// i=1 => with inode number
 void printFile_Long(struct dirent *entry, const char *path, int i){
     char filePath[1024];
     char buf[1024];
@@ -134,16 +157,16 @@ void printFile_Long(struct dirent *entry, const char *path, int i){
     lstat(filePath, &fileStat);
     grp = getgrgid(fileStat.st_gid); 
     pw = getpwuid(fileStat.st_uid);
-    time = gmtime(&fileStat.st_mtime);
+    time = localtime(&fileStat.st_mtime);
     
     if(i==1)
-        printf("%10llu", fileStat.st_ino);
+        printf("%10lu", fileStat.st_ino);
     
     transferModeToString(fileStat);
-    printf("%4d", fileStat.st_nlink);
-    printf("%15s", pw->pw_name);
+    printf("%4lu", fileStat.st_nlink);
+    printf("%10s ", pw->pw_name);
     printf("%8s", grp->gr_name);
-    printf("%8lld", fileStat.st_size);
+    printf("%8lu", fileStat.st_size);
     printf("%7s %02d %04d %02d:%02d\t", months[time->tm_mon], time->tm_mday, time->tm_year + 1900, time->tm_hour, time->tm_min);
     printf("%s", entry->d_name);
     
@@ -155,8 +178,9 @@ void printFile_Long(struct dirent *entry, const char *path, int i){
     printf("\n");
 }
 
+// transfer stat.st_mode to readable permission string and print it
 void transferModeToString( struct stat fileStat){
-    printf("  ");
+    printf(" ");
     printf( (S_ISDIR(fileStat.st_mode)) ? "d" : "-");
     printf( (fileStat.st_mode & S_IRUSR) ? "r" : "-");
     printf( (fileStat.st_mode & S_IWUSR) ? "w" : "-");
